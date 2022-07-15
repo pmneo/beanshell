@@ -90,7 +90,9 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
             boolean breakout = false; // switch eats a multi-level break here?
             if (statement != null) {
                 // not empty statement
+                interpreter.checkInterrupted( this, callstack );
                 Object ret = statement.eval(callstack, interpreter);
+                interpreter.checkInterrupted( this, callstack );
                 if (ret instanceof ReturnControl) {
                     switch (((ReturnControl) ret).kind) {
                         case RETURN:

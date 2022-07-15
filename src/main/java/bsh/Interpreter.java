@@ -505,8 +505,9 @@ public class Interpreter
                     if ( TRACE )
                         println("// " + node.getText());
 
-
+                    checkInterrupted( node, callstack );
                     Object ret = node.eval(callstack, this);
+                    checkInterrupted( node, callstack );
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
@@ -1372,4 +1373,27 @@ public class Interpreter
 
     }
 
+
+    private boolean interrupted = false;
+    public boolean interrupted() {
+        if( interrupted )
+            return true;
+        else if( parent != null )
+            return parent.interrupted();
+        else
+            return false;
+    }
+    public void interrupt() {
+        interrupted = true;
+
+        if( parent != null ) {
+            parent.interrupt();
+        }
+    }
+
+    public void checkInterrupted( Node node, CallStack callstack ) throws EvalError {
+        if( interrupted() ) {
+            throw new EvalError( "Execution was interrupted", node, callstack );
+        }
+    }
 }

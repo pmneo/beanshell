@@ -68,7 +68,9 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
             if (body == null) {
                 continue;
             }
+            interpreter.checkInterrupted( this, callstack );
             Object ret = body.eval(callstack, interpreter);
+            interpreter.checkInterrupted( this, callstack );
             if (ret instanceof ReturnControl) {
                 switch (((ReturnControl) ret).kind) {
                     case RETURN:

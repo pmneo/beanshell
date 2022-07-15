@@ -87,6 +87,8 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         Object returnControl = Primitive.VOID;
         while( !Thread.interrupted() )
         {
+            interpreter.checkInterrupted( this, callstack );
+
             if ( hasExpression )
             {
                 boolean cond = BSHIfStatement.evaluateCondition(
@@ -101,6 +103,8 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             {
                 // do *not* invoke special override for block... (see above)
                 Object ret = statement.eval( callstack, interpreter );
+
+                interpreter.checkInterrupted( this, callstack );
 
                 if (ret instanceof ReturnControl)
                 {

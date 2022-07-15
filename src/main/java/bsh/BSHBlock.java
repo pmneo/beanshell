@@ -70,6 +70,8 @@ class BSHBlock extends SimpleNode
         boolean overrideNamespace )
         throws EvalError
     {
+        interpreter.checkInterrupted( this, callstack );
+
         Object syncValue = null;
         if ( isSynchronized )
         {
@@ -77,6 +79,8 @@ class BSHBlock extends SimpleNode
             Node exp = jjtGetChild(0);
             syncValue = exp.eval(callstack, interpreter);
         }
+
+        interpreter.checkInterrupted( this, callstack );
 
         Object ret;
         if ( isSynchronized ) // Do the actual synchronization
@@ -88,6 +92,8 @@ class BSHBlock extends SimpleNode
         else
                 ret = evalBlock(
                     callstack, interpreter, overrideNamespace, null/*filter*/);
+
+        interpreter.checkInterrupted( this, callstack );
 
         return ret;
     }
@@ -123,6 +129,8 @@ class BSHBlock extends SimpleNode
                     hasClassDeclaration = true;
                     node.eval( callstack, interpreter );
                 }
+
+                interpreter.checkInterrupted( this, callstack );
             }
             for(int i=startChild; i<numChildren; i++)
             {
@@ -144,6 +152,8 @@ class BSHBlock extends SimpleNode
 
                 ret = node.eval( callstack, interpreter );
 
+                interpreter.checkInterrupted( this, callstack );
+
                 // statement or embedded block evaluated a return statement
                 if ( ret instanceof ReturnControl )
                     break;
@@ -159,6 +169,9 @@ class BSHBlock extends SimpleNode
             }
         }
         isFirst = false;
+
+        interpreter.checkInterrupted( this, callstack );
+
         return ret;
     }
 
