@@ -31,21 +31,11 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 
-import bsh.util.ReferenceCache;
-import bsh.util.ReferenceCache.Type;
-
 class BSHBlock extends SimpleNode
 {
     public boolean isSynchronized = false;
     public boolean isStatic = false;
     private boolean hasClassDeclaration = false, isFirst = true;
-    private static final List<Node> enumBlocks = new ArrayList<>();
-    private static final ReferenceCache<NameSpace,NameSpace> blockspaces
-        = new ReferenceCache<NameSpace, NameSpace>(Type.Weak, Type.Weak, 4000) {
-            protected NameSpace create(NameSpace key) {
-                return new BlockNameSpace(key);
-            }
-    };
 
     BSHBlock(int id) { super(id); }
 
@@ -105,9 +95,14 @@ class BSHBlock extends SimpleNode
     {
         Object ret = Primitive.VOID;
         NameSpace enclosingNameSpace = null;
-        if ( !overrideNamespace )
-            enclosingNameSpace = callstack.swap(
-                    blockspaces.get(callstack.top()));
+        if ( !overrideNamespace ) {
+            NameSpace nsTop = callstack.top();
+            NameSpace blockNs = interpreter.nsCache.get( nsTop );
+            if( blockNs == null ) {
+                interpreter.nsCache.put( nsTop, blockNs = new BlockNameSpace( nsTop ) );
+            }
+            enclosingNameSpace = callstack.swap( blockNs );
+        }
 
         int startChild = isSynchronized ? 1 : 0;
         int numChildren = jjtGetNumChildren();
@@ -132,6 +127,9 @@ class BSHBlock extends SimpleNode
 
                 interpreter.checkInterrupted( this, callstack );
             }
+
+            List<Node> enumBlocks = null;
+
             for(int i=startChild; i<numChildren; i++)
             {
                 Node node = jjtGetChild(i);
@@ -146,6 +144,9 @@ class BSHBlock extends SimpleNode
                 // enum blocks need to override enum class members
                 // let the class finish initializing first
                 if (node instanceof BSHEnumConstant) {
+                    if( enumBlocks == null ) {
+                        enumBlocks = new ArrayList<>();
+                    }
                     enumBlocks.add(node);
                     continue;
                 }
@@ -158,8 +159,11 @@ class BSHBlock extends SimpleNode
                 if ( ret instanceof ReturnControl )
                     break;
             }
-            while (!enumBlocks.isEmpty())
-                enumBlocks.remove(0).eval( callstack, interpreter );
+            if( enumBlocks != null ) {
+                while (!enumBlocks.isEmpty() ) {
+                    enumBlocks.remove(0).eval( callstack, interpreter );
+                }
+            }
         } finally {
             // make sure we put the namespace back when we leave.
             // clear cached block name space, store as empty

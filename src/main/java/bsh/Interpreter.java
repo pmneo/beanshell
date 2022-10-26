@@ -39,7 +39,10 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.ResourceBundle;
+
 
 /**
     The BeanShell script interpreter.
@@ -689,7 +692,7 @@ public class Interpreter
 
         Node node = null;
         boolean eof = false;
-        while( !eof )
+        while( !Thread.interrupted() && !eof )
         {
             try
             {
@@ -703,7 +706,9 @@ public class Interpreter
                     if ( TRACE )
                         println( "// " +node.getText() );
 
+                    checkInterrupted( node, callstack );
                     retVal = node.eval(callstack, localInterpreter);
+                    checkInterrupted( node, callstack );
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
@@ -1374,9 +1379,9 @@ public class Interpreter
     }
 
 
-    private boolean interrupted = false;
+    private final AtomicBoolean interrupted = new AtomicBoolean();
     public boolean interrupted() {
-        if( interrupted )
+        if( interrupted.get() )
             return true;
         else if( parent != null )
             return parent.interrupted();
@@ -1384,7 +1389,7 @@ public class Interpreter
             return false;
     }
     public void interrupt() {
-        interrupted = true;
+        interrupted.set( true );
 
         if( parent != null ) {
             parent.interrupt();
@@ -1396,4 +1401,6 @@ public class Interpreter
             throw new EvalError( "Execution was interrupted", node, callstack );
         }
     }
+
+    public ConcurrentHashMap<NameSpace,NameSpace> nsCache = new ConcurrentHashMap<>();
 }

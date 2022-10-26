@@ -105,6 +105,20 @@ public final class Reflect {
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( callerInfo, callstack );
         }
+        catch ( ReflectError e ) {
+            if( object instanceof Primitive ) {
+                object = ( (Primitive) object ).getValue();
+                try {
+                    return invokeObjectMethod( object, methodName, args, interpreter, callstack, callerInfo );
+                }
+                catch( ReflectError ee ) {
+                    throw e;
+                }
+            }
+            else {
+                throw e;
+            }
+        }
     }
 
     /**
@@ -151,6 +165,15 @@ public final class Reflect {
                 // no field, try property access
                 if ( hasObjectPropertyGetter( object.getClass(), fieldName ) )
                     return getObjectProperty( object, fieldName );
+                else if( object instanceof Primitive ) {
+                    object = ( (Primitive) object ).getValue();
+                    try {
+                        return getFieldValue( object.getClass(), object, fieldName, false/*onlystatic*/);
+                    }
+                    catch( ReflectError ee ) {
+                        throw e;
+                    }
+                }
                 else
                     throw e;
             }
