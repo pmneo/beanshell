@@ -45,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import bsh.util.ReferenceCache;
 
 import static bsh.Reflect.isPublic;
-import static bsh.util.ReferenceCache.Type;
 import static bsh.Reflect.isPrivate;
 import static bsh.Reflect.isPackageAccessible;
 import static bsh.Reflect.isPackageScope;
@@ -91,12 +90,7 @@ import static bsh.Capabilities.haveAccessibility;
 public class BshClassManager {
     /** Class member soft key and soft value reference cache */
     static final ReferenceCache<Class<?>, MemberCache> memberCache
-        = new ReferenceCache<Class<?>, MemberCache>(Type.Soft, Type.Soft, 50) {
-            @Override
-            protected MemberCache create(Class<?> key) {
-                return new MemberCache(key);
-            }
-    };
+        = new ReferenceCache<Class<?>, MemberCache>( key -> new MemberCache(key) );
 
     /** Class member cached value instance **/
     static final class MemberCache {

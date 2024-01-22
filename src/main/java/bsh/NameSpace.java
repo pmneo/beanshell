@@ -1183,7 +1183,6 @@ public class NameSpace
      * @throws ClassNotFoundException mandatory throwing exception */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-
         this.classCache = new HashMap<>();
     }
     /** Invoke a method in this namespace with the specified args and
@@ -1445,6 +1444,7 @@ public class NameSpace
             clone.importedObjects = clone(importedObjects);
             clone.importedStatic = clone(importedStatic);
             clone.names = clone(names);
+            clone.blockNs = null;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new IllegalStateException(e);
@@ -1467,4 +1467,13 @@ public class NameSpace
         return new ArrayList<T>(list);
     }
 
+
+    transient private NameSpace blockNs = null;
+
+    public NameSpace getBlockNs() {
+        return blockNs;
+    }
+    public void setBlockNs(NameSpace blockNs) {
+        this.blockNs = blockNs;
+    }
 }

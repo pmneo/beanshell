@@ -97,10 +97,12 @@ class BSHBlock extends SimpleNode
         NameSpace enclosingNameSpace = null;
         if ( !overrideNamespace ) {
             NameSpace nsTop = callstack.top();
-            NameSpace blockNs = interpreter.nsCache.get( nsTop );
+
+            NameSpace blockNs = nsTop.getBlockNs();
             if( blockNs == null ) {
-                interpreter.nsCache.put( nsTop, blockNs = new BlockNameSpace( nsTop ) );
+                nsTop.setBlockNs( blockNs = new BlockNameSpace( nsTop ) );
             }
+
             enclosingNameSpace = callstack.swap( blockNs );
         }
 
@@ -184,4 +186,3 @@ class BSHBlock extends SimpleNode
     }
 
 }
-

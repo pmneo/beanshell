@@ -39,7 +39,6 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.ResourceBundle;
 
@@ -1401,6 +1400,4 @@ public class Interpreter
             throw new EvalError( "Execution was interrupted", node, callstack );
         }
     }
-
-    public ConcurrentHashMap<NameSpace,NameSpace> nsCache = new ConcurrentHashMap<>();
 }
